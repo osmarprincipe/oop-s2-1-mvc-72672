@@ -1,0 +1,114 @@
+﻿@model IEnumerable<Library.Domain.Entities.Book>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<form asp-action="Index" method="get" class="mb-3">
+    <p>
+        Search by Title or Author:
+        <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" />
+
+        Category:
+        <select name="category">
+            <option value="">All</option>
+            @foreach (var item in (List<string>)ViewData["Categories"])
+            {
+                if (item == (string)ViewData["CurrentCategory"])
+                {
+                    <option value="@item" selected>@item</option>
+                }
+                else
+                {
+                    <option value="@item">@item</option>
+                }
+            }
+        </select>
+
+        Availability:
+        <select name="availability">
+            @if ((string)ViewData["CurrentAvailability"] == "")
+            {
+                <option value="" selected>All</option>
+            }
+            else
+            {
+                <option value="">All</option>
+            }
+
+            @if ((string)ViewData["CurrentAvailability"] == "Available")
+            {
+                <option value="Available" selected>Available</option>
+            }
+            else
+            {
+                <option value="Available">Available</option>
+            }
+
+            @if ((string)ViewData["CurrentAvailability"] == "OnLoan")
+            {
+                <option value="OnLoan" selected>On loan</option>
+            }
+            else
+            {
+                <option value="OnLoan">On loan</option>
+            }
+        </select>
+
+        <input type="submit" value="Filter" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-secondary">Clear</a>
+    </p>
+</form>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Author)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Isbn)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Category)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsAvailable)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Author)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Isbn)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsAvailable)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
