@@ -20,9 +20,45 @@ namespace Library.MVC.Controllers
         }
 
         // GET: Books
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, string category, string availability)
         {
-            return View(await _context.Books.ToListAsync());
+            IQueryable<Book> books = _context.Books.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                books = books.Where(b =>
+                    b.Title.Contains(searchString) ||
+                    b.Author.Contains(searchString));
+            }
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                books = books.Where(b => b.Category == category);
+            }
+
+            if (!string.IsNullOrEmpty(availability))
+            {
+                if (availability == "Available")
+                {
+                    books = books.Where(b => b.IsAvailable);
+                }
+                else if (availability == "OnLoan")
+                {
+                    books = books.Where(b => !b.IsAvailable);
+                }
+            }
+
+            ViewData["CurrentFilter"] = searchString ?? "";
+            ViewData["CurrentCategory"] = category ?? "";
+            ViewData["CurrentAvailability"] = availability ?? "";
+
+            ViewData["Categories"] = await _context.Books
+                .Select(b => b.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            return View(await books.ToListAsync());
         }
 
         // GET: Books/Details/5
