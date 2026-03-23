@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Library.Domain.Entities;
 using Library.MVC.Data;
+using Microsoft.AspNetCore.Authorization;
+using Serilog;
 
 namespace Library.MVC.Controllers
 {
+    [Authorize]
     public class PremisesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,12 +23,14 @@ namespace Library.MVC.Controllers
         }
 
         // GET: Premises
+        [Authorize(Roles = "Admin,Inspector,Viewer")]
         public async Task<IActionResult> Index()
         {
             return View(await _context.Premises.ToListAsync());
         }
 
         // GET: Premises/Details/5
+        [Authorize(Roles = "Admin,Inspector,Viewer")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -44,6 +49,7 @@ namespace Library.MVC.Controllers
         }
 
         // GET: Premises/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -54,18 +60,21 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Id,Name,Address,Town,RiskRating")] Premises premises)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(premises);
                 await _context.SaveChangesAsync();
+                Log.Information("Created new item");
                 return RedirectToAction(nameof(Index));
             }
             return View(premises);
         }
 
         // GET: Premises/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -86,6 +95,7 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,Town,RiskRating")] Premises premises)
         {
             if (id != premises.Id)
@@ -111,12 +121,15 @@ namespace Library.MVC.Controllers
                         throw;
                     }
                 }
+                Log.Information("Item updated. ID: {Id}", id);
                 return RedirectToAction(nameof(Index));
             }
             return View(premises);
         }
 
+
         // GET: Premises/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -137,6 +150,7 @@ namespace Library.MVC.Controllers
         // POST: Premises/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var premises = await _context.Premises.FindAsync(id);
@@ -146,6 +160,7 @@ namespace Library.MVC.Controllers
             }
 
             await _context.SaveChangesAsync();
+            Log.Information("Item deleted. ID: {Id}", id);
             return RedirectToAction(nameof(Index));
         }
 

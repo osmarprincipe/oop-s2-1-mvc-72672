@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Library.MVC.Models;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace Library.MVC.Controllers
 {

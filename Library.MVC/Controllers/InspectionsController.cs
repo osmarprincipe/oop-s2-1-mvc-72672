@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Library.Domain.Entities;
+using Library.MVC.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Library.Domain.Entities;
-using Library.MVC.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Serilog;
 
 namespace Library.MVC.Controllers
 {
+    [Authorize]
     public class InspectionsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,6 +23,7 @@ namespace Library.MVC.Controllers
         }
 
         // GET: Inspections
+        [Authorize(Roles = "Admin,Inspector,Viewer")]
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Inspections.Include(i => i.Premises);
@@ -27,6 +31,7 @@ namespace Library.MVC.Controllers
         }
 
         // GET: Inspections/Details/5
+        [Authorize(Roles = "Admin,Inspector,Viewer")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -46,9 +51,10 @@ namespace Library.MVC.Controllers
         }
 
         // GET: Inspections/Create
+        [Authorize(Roles = "Admin,Inspector")]
         public IActionResult Create()
         {
-            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Address");
+            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Id");
             return View();
         }
 
@@ -57,19 +63,22 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Inspector")]
         public async Task<IActionResult> Create([Bind("Id,InspectionDate,Score,Outcome,Notes,PremisesId")] Inspection inspection)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(inspection);
                 await _context.SaveChangesAsync();
+                Log.Information("New inspection created. ID: {Id}", inspection.Id);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Address", inspection.PremisesId);
+            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Id", inspection.PremisesId);
             return View(inspection);
         }
 
         // GET: Inspections/Edit/5
+        [Authorize(Roles = "Admin,Inspector")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -82,7 +91,7 @@ namespace Library.MVC.Controllers
             {
                 return NotFound();
             }
-            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Address", inspection.PremisesId);
+            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Id", inspection.PremisesId);
             return View(inspection);
         }
 
@@ -91,6 +100,7 @@ namespace Library.MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Inspector")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,InspectionDate,Score,Outcome,Notes,PremisesId")] Inspection inspection)
         {
             if (id != inspection.Id)
@@ -116,13 +126,15 @@ namespace Library.MVC.Controllers
                         throw;
                     }
                 }
+                Log.Information("Item updated. ID: {Id}", id);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Address", inspection.PremisesId);
+            ViewData["PremisesId"] = new SelectList(_context.Premises, "Id", "Id", inspection.PremisesId);
             return View(inspection);
         }
 
         // GET: Inspections/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -144,6 +156,7 @@ namespace Library.MVC.Controllers
         // POST: Inspections/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var inspection = await _context.Inspections.FindAsync(id);
@@ -153,6 +166,7 @@ namespace Library.MVC.Controllers
             }
 
             await _context.SaveChangesAsync();
+            Log.Information("Item deleted. ID: {Id}", id);
             return RedirectToAction(nameof(Index));
         }
 
