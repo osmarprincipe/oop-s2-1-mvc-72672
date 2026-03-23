@@ -5,27 +5,28 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Library.Domain;
+using Library.Domain.Entities;
 using Library.MVC.Data;
 
 namespace Library.MVC.Controllers
 {
-    public class ProductsController : Controller
+    public class FollowUpsController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public ProductsController(ApplicationDbContext context)
+        public FollowUpsController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // GET: Products
+        // GET: FollowUps
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Products.ToListAsync());
+            var applicationDbContext = _context.FollowUps.Include(f => f.Inspection);
+            return View(await applicationDbContext.ToListAsync());
         }
 
-        // GET: Products/Details/5
+        // GET: FollowUps/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -33,39 +34,42 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var followUp = await _context.FollowUps
+                .Include(f => f.Inspection)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (followUp == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(followUp);
         }
 
-        // GET: Products/Create
+        // GET: FollowUps/Create
         public IActionResult Create()
         {
+            ViewData["InspectionId"] = new SelectList(_context.Inspections, "Id", "Id");
             return View();
         }
 
-        // POST: Products/Create
+        // POST: FollowUps/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,DueDate,Status,ClosedDate,InspectionId")] FollowUp followUp)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
+                _context.Add(followUp);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            ViewData["InspectionId"] = new SelectList(_context.Inspections, "Id", "Id", followUp.InspectionId);
+            return View(followUp);
         }
 
-        // GET: Products/Edit/5
+        // GET: FollowUps/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,22 +77,23 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
+            var followUp = await _context.FollowUps.FindAsync(id);
+            if (followUp == null)
             {
                 return NotFound();
             }
-            return View(product);
+            ViewData["InspectionId"] = new SelectList(_context.Inspections, "Id", "Id", followUp.InspectionId);
+            return View(followUp);
         }
 
-        // POST: Products/Edit/5
+        // POST: FollowUps/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Product product)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,DueDate,Status,ClosedDate,InspectionId")] FollowUp followUp)
         {
-            if (id != product.Id)
+            if (id != followUp.Id)
             {
                 return NotFound();
             }
@@ -97,12 +102,12 @@ namespace Library.MVC.Controllers
             {
                 try
                 {
-                    _context.Update(product);
+                    _context.Update(followUp);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ProductExists(product.Id))
+                    if (!FollowUpExists(followUp.Id))
                     {
                         return NotFound();
                     }
@@ -113,10 +118,11 @@ namespace Library.MVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(product);
+            ViewData["InspectionId"] = new SelectList(_context.Inspections, "Id", "Id", followUp.InspectionId);
+            return View(followUp);
         }
 
-        // GET: Products/Delete/5
+        // GET: FollowUps/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -124,34 +130,35 @@ namespace Library.MVC.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
+            var followUp = await _context.FollowUps
+                .Include(f => f.Inspection)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (product == null)
+            if (followUp == null)
             {
                 return NotFound();
             }
 
-            return View(product);
+            return View(followUp);
         }
 
-        // POST: Products/Delete/5
+        // POST: FollowUps/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product != null)
+            var followUp = await _context.FollowUps.FindAsync(id);
+            if (followUp != null)
             {
-                _context.Products.Remove(product);
+                _context.FollowUps.Remove(followUp);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProductExists(int id)
+        private bool FollowUpExists(int id)
         {
-            return _context.Products.Any(e => e.Id == id);
+            return _context.FollowUps.Any(e => e.Id == id);
         }
     }
 }
